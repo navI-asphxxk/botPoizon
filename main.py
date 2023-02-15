@@ -33,10 +33,10 @@ def start(message):
 
 @bot.callback_query_handler(func=lambda call: True)
 def check_callback_data(call):
+
+    #исправляет значок загрузки
     if call.message:
         bot.answer_callback_query(callback_query_id=call.id)
-        message1_id = None
-        message2_id = None
 
         if call.data == "faq":
             list1 = types.InlineKeyboardMarkup()
@@ -105,10 +105,10 @@ def check_callback_data(call):
             list4.add(write_button, back_button)
             bot.delete_message(call.message.chat.id, call.message.message_id)
             bot.send_message(call.message.chat.id, text='Стоимость рассчитывается из:\n'
-                                                                      '1)стоимость товара в CNY * НЫНЕШНИЙ курс\n'
-                                                                      '2)доставка товара в РФ(600руб за 0.5кг) + доставка по РФ\n'
-                                                                      '3)плата в размере 10% от стоимости заказа за нашу работу\n',
-                                           reply_markup=list4)
+                                                        '1)стоимость товара в CNY * НЫНЕШНИЙ курс\n'
+                                                        '2)доставка товара в РФ(600руб за 0.5кг) + доставка по РФ\n'
+                                                        '3)плата в размере 10% от стоимости заказа за нашу работу\n',
+                             reply_markup=list4)
 
         if call.data == "write":
             list5 = types.InlineKeyboardMarkup(row_width=1)
@@ -139,7 +139,7 @@ def get_text(message):
     if message.text == '🔙Назад':
         bot.delete_message(message.chat.id, message.message_id - 1)
 
-    #if message.text == '🧹Очистить чат':
+    # if message.text == '🧹Очистить чат':
 
 
 bot.polling(none_stop=True)
