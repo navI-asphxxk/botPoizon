@@ -3,32 +3,30 @@ from telebot import types
 
 bot = telebot.TeleBot('5859947490:AAGi869_UulnDH1qRNj5tILrxhB_bds7Bkw')
 
+def main_menu():
+    keyboard_menu = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
+    menu = types.KeyboardButton(text='🏠Главное меню🏠')
+    FAQ = types.InlineKeyboardButton(text='🆘FAQ🆘')
+    BUY = types.InlineKeyboardButton(text='🚛Сделать заказ')
+    back = types.KeyboardButton(text='🔙Назад')
+    clear = types.KeyboardButton(text='🧹Очистить чат')
+    keyboard_menu.add(FAQ, BUY, back)
+
+    return keyboard_menu
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    keyboard_menu = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True, one_time_keyboard=True)
-    back = types.KeyboardButton(text='🔙Назад')
-    menu = types.KeyboardButton(text='🏠Главное меню🏠')
-    clear = types.KeyboardButton(text='🧹Очистить чат')
-    keyboard_menu.add(menu, back)
 
-    # mess =
-    bot.send_message(message.chat.id, '<b>Йоу, мы занимаемся доставкой оригинальной продукции '
+    bot.send_photo(message.chat.id, open('poizon.jpg', 'rb'),
+                   caption='<b>Йоу, мы занимаемся доставкой оригинальной продукции '
                                       'всех самых популярных брендов: Nike, Adidas, Jordan, Gucci, '
                                       'Balenciaga и др. - с магазина Poizon. При нынешних ограничениях '
                                       'достать оригинальный товар проблематично, поэтому мы предоставляем '
                                       'свои услуги по низким ценам. Если удалось тебя заинтересавать,'
                                       ' обязательно смотри FAQ перед заказом</b>',
-                     parse_mode='html', reply_markup=keyboard_menu)
+                   parse_mode='html',
+                   reply_markup=main_menu())
 
-    # кнопки FAQ и Сделать заказ
-    markup = types.InlineKeyboardMarkup()
-    FAQ = types.InlineKeyboardButton(text='🆘FAQ🆘', callback_data="faq")
-    BUY = types.InlineKeyboardButton(text='🚛Сделать заказ', callback_data="buy")
-    markup.add(FAQ, BUY)
-
-    photo = open('poizon.jpg', 'rb')
-    bot.send_photo(message.chat.id, photo, reply_markup=markup)
 
 
 @bot.callback_query_handler(func=lambda call: True)
@@ -75,15 +73,18 @@ def check_callback_data(call):
                              parse_mode='html', reply_markup=list1)
 
         if call.data == "buy":
-            list2 = types.InlineKeyboardMarkup(row_width=1)
+            list2 = types.InlineKeyboardMarkup(row_width=2)
             download = types.InlineKeyboardButton("🔃Скачать Poizon", callback_data="download")
             help_button = types.InlineKeyboardButton("👙Помощь в подборе товара",
                                                      url="https://t.me/kulik_kov")
             price = types.InlineKeyboardButton("💵Наши цены", callback_data="price")
             write_button = types.InlineKeyboardButton("💰Сделать заказ",
                                                       callback_data="write")
-            list2.add(download, help_button, price, write_button)
-            bot.send_message(call.message.chat.id, text='Если ты дошел до этого этапа, назад пути нет',
+            list2.add(download)
+            list2.add(help_button)
+            list2.add(price, write_button)
+
+            bot.send_message(call.message.chat.id, text='что за тяги бархатные',
                              reply_markup=list2)
 
         if call.data == "download":
@@ -92,18 +93,17 @@ def check_callback_data(call):
                                                         url="https://apps.apple.com/ru/app/得物-有毒的运动-潮流-好物/id1012871328")
             url_button_android = types.InlineKeyboardButton("Скачать для Android🤖",
                                                             url="https://apkpure.com/ru/poizon-authentic-fashion/com.shizhuang.poizon.hk")
-            back_button = types.InlineKeyboardButton("🔙Вернуться", callback_data='buy')
+            back_button = types.InlineKeyboardButton("🔙Вернуться", callback_data='cancel')
             list3.add(url_button_ios, url_button_android, back_button)
             bot.send_message(call.message.chat.id, text='Скачать приложение:', reply_markup=list3)
-            bot.delete_message(call.message.chat.id, call.message.message_id)
+
 
         if call.data == "price":
             list4 = types.InlineKeyboardMarkup(row_width=1)
             write_button = types.InlineKeyboardButton("💰Сделать заказ",
                                                       callback_data="write")
-            back_button = types.InlineKeyboardButton("🔙Вернуться", callback_data='buy')
+            back_button = types.InlineKeyboardButton("🔙Вернуться", callback_data='cancel')
             list4.add(write_button, back_button)
-            bot.delete_message(call.message.chat.id, call.message.message_id)
             bot.send_message(call.message.chat.id, text='Стоимость рассчитывается из:\n'
                                                         '1)стоимость товара в CNY * НЫНЕШНИЙ курс\n'
                                                         '2)доставка товара в РФ(600руб за 0.5кг) + доставка по РФ\n'
@@ -130,11 +130,65 @@ def check_callback_data(call):
                                    'указано на фото',
                            parse_mode='html', reply_markup=list5)
 
+        if call.data == 'cancel':
+            bot.delete_message(call.message.chat.id, call.message.message_id)
+
 
 @bot.message_handler(content_types=['text'])
 def get_text(message):
     if message.text == '🏠Главное меню🏠':
         bot.send_message(message.chat.id, text='/start', parse_mode='html')
+
+    if message.text == '🆘FAQ🆘':
+        list1 = types.InlineKeyboardMarkup()
+        BUY = types.InlineKeyboardButton("🚛Сделать заказ", callback_data="buy")
+        list1.add(BUY)
+        bot.send_message(message.chat.id,
+                         text='<b>Часто задаваемые вопросы\n'
+                              '\n'
+                              '1.	Что такое POIZON и зачем заказывать из Китая?</b>\n'
+                              'POIZON(DeWu)- китайский магазин ОРИГИНАЛЬНЫХ брендов. '
+                              'При нынешних введенных ограничениях, это звучит очень интересно,'
+                              ' а учитывая стоимость, которая НИЖЕ чем в РФ НА 30-40%, и огромный ассортимент, '
+                              'тебе вообще захочется оставить там всю свою зп. POIZON -  это аналог русского OZON или WB, '
+                              'но только с намного большим выбором – оно и понятно, узкоглазые быстро размножаются. '
+                              'На этой платформе возможно купить фактически что угодно – хоть то будет пара носков '
+                              'или же Lamborghini за каких-то ~60 лимонов. Наиболее популярные категории среди РФ '
+                              'покупателей: одежда, обувь, техника - доставку этих товаров мы Вам и предлагаем.\n'
+                              '\n'
+                              '<b>2.	Почему я не могу сделать заказ сам?</b>\n'
+                              'Чтобы сделать заказ на платформе POIZON, необходимо:\n'
+                              '1)Наличие китайской карты для оплаты – удачи ее открыть)\n'
+                              '2)Денежные средства на этой же карте в валюте CNY – обменники берут большую комиссию при переводе денег\n'
+                              '3)Транспортировка по Китаю до склада отправки в РФ\n'
+                              '4)Поиск оптимальной транспортной компании, чтобы твои тапки дошли в РФ быстро, и ты при этом потратил бы меньше денег.\n'
+                              '5)Транспортировка по РФ до места выдачи\n'
+                              'Чтобы сэкономить Ваше время и деньги, мы и предлагаем свои услуги\n'
+                              '\n'
+                              '<b>3.	Стоимость и сроки доставки\n</b>'
+                              'Мы уже позаботились за Вас о поиске транспортных компаний, а также об оплате покупки. Заказывая у нас, ты совместишь низкую цену с быстрой доставкой\n'
+                              '•	Стоимость рассчитывается из:\n'
+                              'стоимость товара в CNY * НЫНЕШНИЙ курс\n'
+                              'доставка товара в РФ(600руб за 0.5кг) + доставка по РФ\n'
+                              'плата в размере 10% от стоимости заказа за нашу работу\n'
+                              '•	Средние сроки доставки* до клиента 3-4 недели, но обычно это занимает не более месяца\n'
+                              '*Сроки могут корректироваться, уточняйте при оформлении заказа',
+                         parse_mode='html', reply_markup=list1)
+
+    if message.text == '🚛Сделать заказ':
+        list2 = types.InlineKeyboardMarkup(row_width=2)
+        download = types.InlineKeyboardButton("🔃Скачать Poizon", callback_data="download")
+        help_button = types.InlineKeyboardButton("👙Помощь в подборе товара",
+                                                 url="https://t.me/kulik_kov")
+        price = types.InlineKeyboardButton("💵Наши цены", callback_data="price")
+        write_button = types.InlineKeyboardButton("💰Сделать заказ",
+                                                  callback_data="write")
+        list2.add(download)
+        list2.add(help_button)
+        list2.add(price, write_button)
+
+        bot.send_message(message.chat.id, text='что за тяги бархатные',
+                         reply_markup=list2)
 
     if message.text == '🔙Назад':
         bot.delete_message(message.chat.id, message.message_id - 1)
